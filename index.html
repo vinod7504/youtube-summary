@@ -1,1027 +1,517 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VK Agent - YouTube Summarizer</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f2f2f2;
-    }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-left: 1px solid #ddd;
-      border-right: 1px solid #ddd;
-    }
-
-    .chat-header {
-      background-color: #343a40;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .chat-header img {
-      height: 30px;
-      width: 30px;
-    }
-
-    .chat-log {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      background-color: #f7f7f7;
-    }
-
-    .message {
-      max-width: 75%;
-      padding: 10px 15px;
-      border-radius: 15px;
-      margin-bottom: 10px;
-      clear: both;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .user {
-      background-color: #d1e7ff;
-      color: #003c75;
-      float: right;
-      border-bottom-right-radius: 0;
-    }
-
-    .bot {
-      background-color: #d4edda;
-      color: #155724;
-      float: left;
-      border-bottom-left-radius: 0;
-    }
-
-    .chat-input {
-      display: flex;
-      padding: 10px;
-      background: #fff;
-      border-top: 1px solid #ccc;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 12px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-right: 10px;
-    }
-
-    .chat-input button {
-      padding: 12px 20px;
-      font-size: 14px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .chat-input button:hover {
-      background: #218838;
-    }
-
-    /* Scrollbar styling (optional) */
-    .chat-log::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-log::-webkit-scrollbar-thumb {
-      background-color: #ccc;
-      border-radius: 3px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="chat-container">
-    <div class="chat-header">
-      <img src="https://cdn-icons-png.flaticon.com/512/4712/4712104.png" alt="VK Logo">
-      VK Agent
-    </div>
-
-    <div class="chat-log" id="chatLog">
-      <div class="message bot">👋 Hi! I'm VK Agent. Paste a YouTube video link below and I’ll summarize it for you.</div>
-    </div>
-
-    <div class="chat-input">
-      <input type="text" id="userInput" placeholder="Paste YouTube video link..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
-
-  <script>
-    async function sendMessage() {
-      const input = document.getElementById('userInput');
-      const chatLog = document.getElementById('chatLog');
-      const message = input.value.trim();
-      if (!message) return;
-
-      // Show user message
-      const userMsg = document.createElement('div');
-      userMsg.className = 'message user';
-      userMsg.textContent = message;
-      chatLog.appendChild(userMsg);
-
-      // Show loading message
-      const botMsg = document.createElement('div');
-      botMsg.className = 'message bot';
-      botMsg.textContent = '⏳ Summarizing...';
-      chatLog.appendChild(botMsg);
-
-      input.value = '';
-      chatLog.scrollTop = chatLog.scrollHeight;
-
-      try {
-        const res = await fetch('http://localhost:5678/webhook-test/get-video', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ videoUrl: message })
-        });
-
-        const data = await res.json();
-
-        // Replace loading with actual summary
-        botMsg.textContent = data?.[0]?.text || '✅ Received, but no summary found.';
-      } catch (err) {
-        botMsg.textContent = '⚠️ Error connecting to VK Agent server.';
-      }
-
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-  </script>
-
-</body>
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VK Agent - YouTube Summarizer</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #ff0000;
-      --primary-dark: #cc0000;
-      --dark-bg: #121212;
-      --dark-surface: #1e1e1e;
-      --dark-text: #ffffff;
-      --dark-text-secondary: #aaaaaa;
-      --light-bg: #f5f5f5;
-      --light-surface: #ffffff;
-      --light-text: #333333;
-      --light-text-secondary: #666666;
-      --user-msg: #4285f4;
-      --bot-msg: #34a853;
-      --error: #ea4335;
-      --warning: #fbbc05;
-      --radius: 16px;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      --transition: all 0.3s ease;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--light-bg);
-      color: var(--light-text);
-      height: 100vh;
-      /* width: 100px;  */
-      display: flex;
-      justify-content: center;
-       align-items: center; 
-      transition: var(--transition);
-    }
-
-    body.dark-mode {
-      background: var(--dark-bg);
-      color: var(--dark-text);
-    }
-
-    .container {
-      width: 100%;
-      max-width: 900px;
-      height: 90vh;
-      display: flex;
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: var(--light-surface);
-      transition: var(--transition);
-    }
-
-    .dark-mode .container {
-      background: var(--dark-surface);
-    }
-
-    /* Sidebar styling */
-    .sidebar {
-      width: 300px;
-      background: linear-gradient(135deg, #2c2c2c 0%, #121212 100%);
-      color: white;
-      padding: 30px 20px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .sidebar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--primary);
-      box-shadow: 0 0 10px var(--primary);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 40px;
-    }
-
-    .logo img {
-      width: 40px;
-      height: 40px;
-    }
-
-    .logo h1 {
-      font-size: 24px;
-      font-weight: 700;
-      background: linear-gradient(90deg, #ff4d4d, #ff0000);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .features {
-      flex: 1;
-    }
-
-    .features h2 {
-      font-size: 18px;
-      margin-bottom: 20px;
-      color: #ffffff;
-      font-weight: 600;
-    }
-
-    .features ul {
-      list-style: none;
-    }
-
-    .features li {
-      padding: 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .features li i {
-      color: var(--primary);
-      font-size: 18px;
-    }
-
-    .theme-toggle {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      margin-top: 20px;
-      transition: var(--transition);
-    }
-
-    .theme-toggle:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Main chat area */
-    .chat-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .chat-header {
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      background: var(--light-surface);
-      transition: var(--transition);
-    }
-
-    .dark-mode .chat-header {
-      background: var(--dark-surface);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .header-title h2 {
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .header-title p {
-      font-size: 14px;
-      color: var(--light-text-secondary);
-      margin-top: 4px;
-    }
-
-    .dark-mode .header-title p {
-      color: var(--dark-text-secondary);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 15px;
-    }
-
-    .header-actions button {
-      background: rgba(0, 0, 0, 0.05);
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-      color: var(--light-text);
-    }
-
-    .dark-mode .header-actions button {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--dark-text);
-    }
-
-    .header-actions button:hover {
-      background: rgba(0, 0, 0, 0.1);
-    }
-
-    .dark-mode .header-actions button:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .chat-log {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      background: var(--light-bg);
-      transition: var(--transition);
-    }
-
-    .dark-mode .chat-log {
-      background: var(--dark-bg);
-    }
-
-    .message-container {
-      display: flex;
-      margin-bottom: 20px;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeIn 0.4s forwards;
-    }
-
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Samvid – Chatbot</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        /* 🎨 Palette */
+        --primary: #ff0000;
+        --primary-dark: #cc0000;
+        --dark-bg: #121212;
+        --dark-surface: #1e1e1e;
+        --dark-text: #ffffff;
+        --dark-text-secondary: #aaaaaa;
+        --light-bg: #f5f5f5;
+        --light-surface: #ffffff;
+        --light-text: #333333;
+        --light-text-secondary: #666666;
+        --user-msg: #4285f4;
+        --bot-msg: #34a853;
+        --error: #ea4335;
+        --radius: 16px;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s ease;
       }
-    }
 
-    .message-container.user {
-      justify-content: flex-end;
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      flex-shrink: 0;
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    .user .avatar {
-      background: var(--user-msg);
-      color: white;
-    }
-
-    .bot .avatar {
-      background: linear-gradient(135deg, var(--bot-msg), #0f9d58);
-      color: white;
-    }
-
-    .message {
-      max-width: 75%;
-      padding: 16px 20px;
-      border-radius: var(--radius);
-      position: relative;
-      box-shadow: var(--shadow);
-    }
-
-    .user .message {
-      background: var(--user-msg);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .bot .message {
-      background: var(--light-surface);
-      color: var(--light-text);
-      border-bottom-left-radius: 4px;
-    }
-
-    .dark-mode .bot .message {
-      background: #2a2a2a;
-      color: var(--dark-text);
-    }
-
-    .message::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      width: 20px;
-      height: 20px;
-    }
-
-    .user .message::after {
-      right: -10px;
-      background: var(--user-msg);
-      clip-path: polygon(100% 0, 0 0, 100% 100%);
-    }
-
-    .bot .message::after {
-      left: -10px;
-      background: var(--light-surface);
-      clip-path: polygon(0 0, 0 100%, 100% 0);
-    }
-
-    .dark-mode .bot .message::after {
-      background: #2a2a2a;
-    }
-
-    .message-content {
-      line-height: 1.6;
-      font-size: 16px;
-    }
-
-    .message-time {
-      font-size: 12px;
-      opacity: 0.7;
-      text-align: right;
-      margin-top: 8px;
-    }
-
-    .user .message-time {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .bot .message-time {
-      color: var(--light-text-secondary);
-    }
-
-    .dark-mode .bot .message-time {
-      color: var(--dark-text-secondary);
-    }
-
-    /* Loading animation */
-    .loading-container {
-      display: flex;
-      gap: 6px;
-      padding: 20px;
-    }
-
-    .loading-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--primary);
-      animation: pulse 1.5s infinite ease-in-out;
-    }
-
-    .loading-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .loading-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes pulse {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.6;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-      30% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-    }
-
-    /* Input area */
-    .chat-input {
-      padding: 20px;
-      background: var(--light-surface);
-      border-top: 1px solid rgba(0, 0, 0, 0.05);
-      transition: var(--transition);
-    }
-
-    .dark-mode .chat-input {
-      background: var(--dark-surface);
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .input-container {
-      display: flex;
-      background: var(--light-bg);
-      border-radius: 30px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-    }
-
-    .dark-mode .input-container {
-      background: #2a2a2a;
-    }
-
-    .input-container:focus-within {
-      box-shadow: 0 0 0 2px var(--primary);
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 16px 24px;
-      font-size: 16px;
-      border: none;
-      background: transparent;
-      outline: none;
-      color: var(--light-text);
-    }
-
-    .dark-mode .chat-input input {
-      color: var(--dark-text);
-    }
-
-    .chat-input input::placeholder {
-      color: var(--light-text-secondary);
-    }
-
-    .dark-mode .chat-input input::placeholder {
-      color: var(--dark-text-secondary);
-    }
-
-    .chat-input button {
-      padding: 0 30px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chat-input button:hover {
-      background: var(--primary-dark);
-    }
-
-    /* Scrollbar styling */
-    .chat-log::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    .chat-log::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .chat-log::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 4px;
-    }
-
-    .dark-mode .chat-log::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .chat-log::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.2);
-    }
-
-    .dark-mode .chat-log::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Error message */
-    .error-message {
-      background: var(--error);
-      color: white;
-      padding: 12px 20px;
-      border-radius: var(--radius);
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: shake 0.5s;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-5px); }
-      40%, 80% { transform: translateX(5px); }
-    }
-
-    /* Responsive design */
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
+      body {
+        font-family: "Segoe UI", "SF Pro Display", -apple-system,
+          BlinkMacSystemFont, sans-serif;
+        background: var(--light-bg);
+        color: var(--light-text);
         height: 100vh;
-        border-radius: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      
-      .sidebar {
+      body.dark-mode {
+        background: var(--dark-bg);
+        color: var(--dark-text);
+      }
+
+      /* 🔲 Main wrapper now looks like a regular centred chatbot */
+      .container {
         width: 100%;
-        padding: 20px 15px;
+        max-width: 650px;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--light-surface);
+        box-shadow: var(--shadow);
+        transition: var(--transition);
       }
-      
-      .logo {
+      body.dark-mode .container {
+        background: var(--dark-surface);
+      }
+
+      /* 🏷️ Chat Header */
+      .chat-header {
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        background: var(--light-surface);
+      }
+      body.dark-mode .chat-header {
+        background: var(--dark-surface);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .header-title h2 {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .header-title p {
+        font-size: 14px;
+        color: var(--light-text-secondary);
+      }
+      body.dark-mode .header-title p {
+        color: var(--dark-text-secondary);
+      }
+
+      .header-actions button {
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        /* display: flex; */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--light-text);
+      }
+      body.dark-mode .header-actions button {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--dark-text);
+      }
+      .header-actions button:hover {
+        background: rgba(0, 0, 0, 0.1);
+      }
+      body.dark-mode .header-actions button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* 📜 Chat log */
+      .chat-log {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: var(--light-bg);
+      }
+      body.dark-mode .chat-log {
+        background: var(--dark-bg);
+      }
+
+      .message-container {
+        display: flex;
         margin-bottom: 20px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeIn 0.4s forwards;
       }
-      
-      .features {
-        display: none;
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
-      
+      .message-container.user {
+        justify-content: flex-end;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        flex-shrink: 0;
+        font-weight: 600;
+        font-size: 18px;
+      }
+      .user .avatar {
+        background: var(--user-msg);
+        color: white;
+      }
+      .bot .avatar {
+        background: linear-gradient(135deg, var(--bot-msg), #0f9d58);
+        color: white;
+      }
+
       .message {
-        max-width: 85%;
+        max-width: 75%;
+        padding: 16px 20px;
+        border-radius: var(--radius);
+        position: relative;
+        box-shadow: var(--shadow);
       }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="sidebar">
-      <div class="logo">
-        <i class="fab fa-youtube" style="color: #ff0000; font-size: 32px;"></i>
-        <h1>VK Agent</h1>
-      </div>
-      
-      <div class="features">
-        <h2>YouTube Summarizer Features</h2>
-        <ul>
-          <li>
-            <i class="fas fa-bolt"></i>
-            <span>Instant video summarization</span>
-          </li>
-          <li>
-            <i class="fas fa-key"></i>
-            <span>Key points extraction</span>
-          </li>
-          <li>
-            <i class="fas fa-clock"></i>
-            <span>Time-stamped highlights</span>
-          </li>
-          <li>
-            <i class="fas fa-globe"></i>
-            <span>Multi-language support</span>
-          </li>
-          <li>
-            <i class="fas fa-history"></i>
-            <span>Conversation history</span>
-          </li>
-        </ul>
-      </div>
-      
-      <button class="theme-toggle" id="themeToggle">
-        <i class="fas fa-moon"></i>
-        <span>Dark Mode</span>
-      </button>
-    </div>
-    
-    <div class="chat-container">
+      .user .message {
+        background: var(--user-msg);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+      .bot .message {
+        background: var(--light-surface);
+        color: var(--light-text);
+        border-bottom-left-radius: 4px;
+      }
+      body.dark-mode .bot .message {
+        background: #2a2a2a;
+        color: var(--dark-text);
+      }
+
+      .message-content {
+        line-height: 1.6;
+        font-size: 16px;
+        white-space: pre-line;
+      }
+      .message-time {
+        font-size: 12px;
+        opacity: 0.7;
+        text-align: right;
+        margin-top: 8px;
+      }
+      .user .message-time {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .bot .message-time {
+        color: var(--light-text-secondary);
+      }
+      body.dark-mode .bot .message-time {
+        color: var(--dark-text-secondary);
+      }
+
+      /* ⏳ Typing animation */
+      .loading-container {
+        display: flex;
+        gap: 6px;
+        padding: 20px;
+      }
+      .loading-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary);
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+      .loading-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .loading-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes pulse {
+        0%,
+        60%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.6;
+        }
+        30% {
+          transform: translateY(-10px);
+          opacity: 1;
+        }
+      }
+
+      /* 🖊️ Input area */
+      .chat-input {
+        padding: 20px;
+        background: var(--light-surface);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      body.dark-mode .chat-input {
+        background: var(--dark-surface);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .input-container {
+        display: flex;
+        background: var(--light-bg);
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      body.dark-mode .input-container {
+        background: #2a2a2a;
+      }
+      .input-container:focus-within {
+        box-shadow: 0 0 0 2px var(--primary);
+      }
+      .chat-input input {
+        flex: 1;
+        padding: 16px 24px;
+        font-size: 16px;
+        border: none;
+        background: transparent;
+        outline: none;
+        color: var(--light-text);
+      }
+      body.dark-mode .chat-input input {
+        color: var(--dark-text);
+      }
+      .chat-input input::placeholder {
+        color: var(--light-text-secondary);
+      }
+      body.dark-mode .chat-input input::placeholder {
+        color: var(--dark-text-secondary);
+      }
+      .chat-input button {
+        padding: 0 30px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: var(--transition);
+      }
+      .chat-input button:hover {
+        background: var(--primary-dark);
+      }
+
+      /* 🎛️ Scrollbar */
+      .chat-log::-webkit-scrollbar {
+        width: 8px;
+      }
+      .chat-log::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .chat-log::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+      }
+      body.dark-mode .chat-log::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .chat-log::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.2);
+      }
+      body.dark-mode .chat-log::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* ❌ Error */
+      .error-message {
+        background: var(--error);
+        color: white;
+        padding: 12px 20px;
+        border-radius: var(--radius);
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: shake 0.5s;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20%,
+        60% {
+          transform: translateX(-5px);
+        }
+        40%,
+        80% {
+          transform: translateX(5px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- 🤖 Chat Unit -->
       <div class="chat-header">
         <div class="header-title">
-          <h2>YouTube Summarizer</h2>
+          <h2>Samvid - Knowledge Gain with less time</h2>
           <p>Paste a YouTube link to get started</p>
         </div>
         <div class="header-actions">
           <button title="Clear chat" onclick="clearChat()">
             <i class="fas fa-trash-alt"></i>
           </button>
-          <button title="Settings">
-            <i class="fas fa-cog"></i>
+          <button title="Toggle theme" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
           </button>
         </div>
       </div>
-      
-      <div class="chat-log" id="chatLog">
-        <div class="message-container bot">
-          <div class="avatar">
-            <i class="fas fa-robot"></i>
-          </div>
-          <div class="message">
-            <div class="message-content">
-              👋 Hello! I'm VK Agent, your YouTube assistant. Paste any YouTube video link below and I'll generate a detailed summary for you.
-            </div>
-            <div class="message-time">Just now</div>
-          </div>
-        </div>
-        
-        <div class="message-container bot">
-          <div class="avatar">
-            <i class="fas fa-robot"></i>
-          </div>
-          <div class="message">
-            <div class="message-content">
-              Here's what I can do:
-              • Summarize long videos into key points
-              • Extract timestamps for important sections
-              • Highlight main topics and conclusions
-            </div>
-            <div class="message-time">Just now</div>
-          </div>
-        </div>
-      </div>
-      
+
+      <div class="chat-log" id="chatLog"></div>
+
       <div class="chat-input">
         <div class="input-container">
-          <input type="text" id="userInput" placeholder="Paste YouTube video link...">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Paste YouTube video link…"
+          />
           <button onclick="sendMessage()">
-            <i class="fab fa-youtube"></i>
-            Summarize
+            <i class="fab fa-youtube"></i>Summarize
           </button>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    // Theme toggle functionality
-    const themeToggle = document.getElementById('themeToggle');
-    const body = document.body;
-    
-    themeToggle.addEventListener('click', () => {
-      body.classList.toggle('dark-mode');
-      
-      if (body.classList.contains('dark-mode')) {
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i><span>Light Mode</span>';
-      } else {
-        themeToggle.innerHTML = '<i class="fas fa-moon"></i><span>Dark Mode</span>';
+    <script>
+      // 🌗 Theme toggle
+      function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
       }
-    });
-    
-    // Function to format time
-    function getCurrentTime() {
-      const now = new Date();
-      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    
-    // Clear chat function
-    function clearChat() {
-      const chatLog = document.getElementById('chatLog');
-      chatLog.innerHTML = '';
-      
-      // Add the initial bot messages back
-      const initialMsg1 = document.createElement('div');
-      initialMsg1.className = 'message-container bot';
-      initialMsg1.innerHTML = `
-        <div class="avatar">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="message">
-          <div class="message-content">
-            👋 Hello! I'm VK Agent, your YouTube assistant. Paste any YouTube video link below and I'll generate a detailed summary for you.
-          </div>
-          <div class="message-time">${getCurrentTime()}</div>
-        </div>
-      `;
-      
-      const initialMsg2 = document.createElement('div');
-      initialMsg2.className = 'message-container bot';
-      initialMsg2.innerHTML = `
-        <div class="avatar">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="message">
-          <div class="message-content">
-            Here's what I can do:
-            • Summarize long videos into key points
-            • Extract timestamps for important sections
-            • Highlight main topics and conclusions
-          </div>
-          <div class="message-time">${getCurrentTime()}</div>
-        </div>
-      `;
-      
-      chatLog.appendChild(initialMsg1);
-      chatLog.appendChild(initialMsg2);
-    }
-    
-    // Send message function with API integration
-    async function sendMessage() {
-      const input = document.getElementById('userInput');
-      const chatLog = document.getElementById('chatLog');
-      const message = input.value.trim();
-      
-      if (!message) return;
-      
-      // Create user message
-      const userContainer = document.createElement('div');
-      userContainer.className = 'message-container user';
-      
-      const userAvatar = document.createElement('div');
-      userAvatar.className = 'avatar';
-      userAvatar.innerHTML = '<i class="fas fa-user"></i>';
-      
-      const userMessage = document.createElement('div');
-      userMessage.className = 'message';
-      
-      const userContent = document.createElement('div');
-      userContent.className = 'message-content';
-      userContent.textContent = message;
-      
-      const userTime = document.createElement('div');
-      userTime.className = 'message-time';
-      userTime.textContent = getCurrentTime();
-      
-      userMessage.appendChild(userContent);
-      userMessage.appendChild(userTime);
-      userContainer.appendChild(userAvatar);
-      userContainer.appendChild(userMessage);
-      chatLog.appendChild(userContainer);
-      
-      // Create loading indicator
-      const loadingContainer = document.createElement('div');
-      loadingContainer.className = 'message-container bot';
-      
-      const botAvatar = document.createElement('div');
-      botAvatar.className = 'avatar';
-      botAvatar.innerHTML = '<i class="fas fa-robot"></i>';
-      
-      const loadingMessage = document.createElement('div');
-      loadingMessage.className = 'message';
-      
-      const loadingContent = document.createElement('div');
-      loadingContent.className = 'loading-container';
-      loadingContent.innerHTML = `
-        <div class="loading-dot"></div>
-        <div class="loading-dot"></div>
-        <div class="loading-dot"></div>
-      `;
-      
-      loadingMessage.appendChild(loadingContent);
-      loadingContainer.appendChild(botAvatar);
-      loadingContainer.appendChild(loadingMessage);
-      chatLog.appendChild(loadingContainer);
-      
-      // Clear input
-      input.value = '';
-      
-      // Scroll to bottom
-      chatLog.scrollTop = chatLog.scrollHeight;
-      
-      try {
-        const res = await fetch('http://localhost:5678/webhook-test/get-video', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ videoUrl: message })
+
+      function getCurrentTime() {
+        const now = new Date();
+        return now.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
         });
+      }
 
-        const data = await res.json();
+      // 🧹 Clear chat
+      function clearChat() {
+        const chatLog = document.getElementById("chatLog");
+        chatLog.innerHTML = "";
+        addWelcomeMessages();
+      }
 
-        // Remove loading indicator
-        chatLog.removeChild(loadingContainer);
-        
-        // Create bot response
-        const botContainer = document.createElement('div');
-        botContainer.className = 'message-container bot';
-        
-        const botAvatar = document.createElement('div');
-        botAvatar.className = 'avatar';
-        botAvatar.innerHTML = '<i class="fas fa-robot"></i>';
-        
-        const botMessage = document.createElement('div');
-        botMessage.className = 'message';
-        
-        const botContent = document.createElement('div');
-        botContent.className = 'message-content';
-        
-        // Check if we have a valid summary
-        if (data && data[0] && data[0].text) {
-          botContent.textContent = data[0].text;
-        } else {
-          botContent.textContent = '✅ Received, but no summary found.';
+      // 👋 Initial bot greet
+      function addWelcomeMessages() {
+        const chatLog = document.getElementById("chatLog");
+        const messages = [
+          "👋 Hello! I'm Samvid, your YouTube assistant. Paste any YouTube video link below and I'll generate a detailed summary for you.",
+          `Here\'s what I can do:\n• Summarize long videos into key points\n• Extract timestamps for important sections\n• Highlight main topics and conclusions`,
+        ];
+        messages.forEach((text) => addBotMessage(text));
+      }
+
+      // ➕ Add user message
+      function addUserMessage(content) {
+        addMessage(content, "user");
+      }
+
+      // ➕ Add bot message
+      function addBotMessage(content) {
+        addMessage(content, "bot");
+      }
+
+      // Generic message builder
+      function addMessage(content, type) {
+        const chatLog = document.getElementById("chatLog");
+        const container = document.createElement("div");
+        container.className = `message-container ${type}`;
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.innerHTML =
+          type === "user"
+            ? '<i class="fas fa-user"></i>'
+            : '<i class="fas fa-robot"></i>';
+        const message = document.createElement("div");
+        message.className = "message";
+        const msgContent = document.createElement("div");
+        msgContent.className = "message-content";
+        msgContent.textContent = content;
+        const time = document.createElement("div");
+        time.className = "message-time";
+        time.textContent = getCurrentTime();
+        message.appendChild(msgContent);
+        message.appendChild(time);
+        container.appendChild(avatar);
+        container.appendChild(message);
+        chatLog.appendChild(container);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+
+      // Loader dots while waiting for server
+      function showLoader() {
+        const chatLog = document.getElementById("chatLog");
+        const container = document.createElement("div");
+        container.className = "message-container bot";
+        container.id = "loader";
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.innerHTML = '<i class="fas fa-robot"></i>';
+        const message = document.createElement("div");
+        message.className = "message";
+        const loader = document.createElement("div");
+        loader.className = "loading-container";
+        loader.innerHTML =
+          '<div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>';
+        message.appendChild(loader);
+        container.appendChild(avatar);
+        container.appendChild(message);
+        chatLog.appendChild(container);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+
+      function hideLoader() {
+        const loader = document.getElementById("loader");
+        if (loader) loader.remove();
+      }
+
+      // 🚀 Send message
+      async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const text = input.value.trim();
+        if (!text) return;
+        addUserMessage(text);
+        input.value = "";
+        showLoader();
+        try {
+          const res = await fetch(
+            "http://localhost:5678/webhook/get-video",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ videoUrl: text }),
+            }
+          );
+          const data = await res.json();
+          hideLoader();
+          const summary =
+            data && data[0] && data[0].text
+              ? data[0].text
+              : "✅ Received, but no summary found.";
+          addBotMessage(summary);
+        } catch (e) {
+          hideLoader();
+          addBotMessage("⚠️ Error connecting to VK Agent server.");
         }
-        
-        const botTime = document.createElement('div');
-        botTime.className = 'message-time';
-        botTime.textContent = getCurrentTime();
-        
-        botMessage.appendChild(botContent);
-        botMessage.appendChild(botTime);
-        botContainer.appendChild(botAvatar);
-        botContainer.appendChild(botMessage);
-        chatLog.appendChild(botContainer);
-        
-      } catch (err) {
-        // Remove loading indicator
-        chatLog.removeChild(loadingContainer);
-        
-        // Create error message
-        const botContainer = document.createElement('div');
-        botContainer.className = 'message-container bot';
-        
-        const botAvatar = document.createElement('div');
-        botAvatar.className = 'avatar';
-        botAvatar.innerHTML = '<i class="fas fa-robot"></i>';
-        
-        const botMessage = document.createElement('div');
-        botMessage.className = 'message';
-        
-        const botContent = document.createElement('div');
-        botContent.className = 'message-content';
-        botContent.textContent = '⚠️ Error connecting to VK Agent server.';
-        
-        const botTime = document.createElement('div');
-        botTime.className = 'message-time';
-        botTime.textContent = getCurrentTime();
-        
-        botMessage.appendChild(botContent);
-        botMessage.appendChild(botTime);
-        botContainer.appendChild(botAvatar);
-        botContainer.appendChild(botMessage);
-        chatLog.appendChild(botContainer);
       }
-      
-      // Scroll to bottom after adding messages
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-    
-    // Allow sending with Enter key
-    document.getElementById('userInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-  </script>
-</body>
+
+      // ⌨️ Enter key shortcut
+      document.getElementById("userInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+
+      // Initialize chat
+      addWelcomeMessages();
+    </script>
+  </body>
 </html>
